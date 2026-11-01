@@ -1,0 +1,12 @@
+# Use a real domain (e.g. agent.example.com) in production to get automatic HTTPS.
+{$SITE_ADDRESS::80} {
+	handle /api/* {
+		reverse_proxy app:8000
+	}
+
+	handle {
+		root * /srv/frontend
+		try_files {path} /index.html
+		file_server
+	}
+}

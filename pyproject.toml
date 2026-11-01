@@ -1,0 +1,16 @@
+[project]
+name = "em-agent"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi>=0.162.0",
+    "langchain-anthropic>=1.7.7",
+    "langgraph>=1.2.19",
+    "langgraph-checkpoint-postgres>=3.2.0",
+    "psycopg[binary,pool]>=3.3.6",
+    "pypdf>=6.21.4",
+    "redis>=8.1.0",
+    "uvicorn[standard]>=0.54.0",
+]
