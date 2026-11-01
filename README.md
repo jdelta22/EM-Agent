@@ -63,8 +63,8 @@ Definidas em `agent/tools.py` (lista `TOOLS`):
 - [x] Estrutura de pastas, FastAPI mínimo, Dockerfile e docker-compose
 - [x] Importação dos CSVs e do manual de políticas para o Postgres
 - [x] Tools do agente, testadas contra o banco
-- [ ] `agent/prompt.py` (system prompt)
-- [ ] `agent/runner.py` (grafo LangGraph + checkpointer Postgres)
+- [x] `agent/prompt.py` (system prompt)
+- [x] `agent/runner.py` (grafo LangGraph + checkpointer Postgres)
 - [ ] Endpoint de chat na API
 - [ ] Handoff para atendente humano (Redis)
 - [ ] Frontend do chat
