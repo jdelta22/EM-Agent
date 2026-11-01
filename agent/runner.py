@@ -9,7 +9,7 @@ from langgraph.prebuilt import ToolNode, tools_condition
 from psycopg.rows import dict_row
 from psycopg_pool import ConnectionPool
 
-from agent.prompt import build_system_prompt
+from agent.prompt import SYSTEM_PROMPT
 from agent.tools import TOOLS
 
 MODEL = os.environ.get("ANTHROPIC_MODEL", "claude-sonnet-5-5")
@@ -30,9 +30,9 @@ def _model() -> ChatAnthropic:
 
 
 def _call_model(state: MessagesState) -> dict:
-    # The system prompt is rebuilt on every call (current date/time and store status) and is
-    # not stored in the checkpoint, so old conversations never carry a stale clock.
-    messages = [SystemMessage(build_system_prompt()), *state["messages"]]
+    # The system prompt must stay identical on every call: thinking blocks saved in the history
+    # are signed against it, and the API rejects them if it changes.
+    messages = [SystemMessage(SYSTEM_PROMPT), *state["messages"]]
     return {"messages": [_model().invoke(messages)]}
 
 

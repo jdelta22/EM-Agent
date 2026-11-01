@@ -2,6 +2,7 @@ import re
 
 from langchain_core.tools import tool
 
+from agent.store import store_status
 from db.connection import get_pool
 
 # Price with the active promotion applied. Per the store policy, promotions are not cumulative
@@ -169,4 +170,21 @@ def search_policies(question: str) -> list[dict]:
     ]
 
 
-TOOLS = [search_products, get_product, list_active_promotions, get_order_status, search_policies]
+@tool
+def get_store_status() -> dict:
+    """Get the current date and time in Campo Grande and whether the store is open right now.
+
+    Call it before saying whether the store is open, when it opens again, or that the team is
+    unavailable. Opening hours: Mon-Fri 9h-18h, Sat 9h-13h, closed on Sunday.
+    """
+    return store_status()
+
+
+TOOLS = [
+    search_products,
+    get_product,
+    list_active_promotions,
+    get_order_status,
+    search_policies,
+    get_store_status,
+]

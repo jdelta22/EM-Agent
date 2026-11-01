@@ -18,6 +18,8 @@ Agente de atendimento via chat para a Empório da Música (loja de instrumentos,
 - Políticas são buscadas com full-text search do Postgres (config `portuguese` + `unaccent`), não com embeddings: o Claude não gera embeddings e o manual tem só 25 trechos. O pgvector está instalado para uso futuro.
 - `search_policies` casa pelas 5 primeiras letras de cada palavra (`word:*`), porque o stemmer do Postgres não une devolver/devolução nem rastrear/rastreamento.
 - Preços: promoções não são cumulativas e o desconto PIX de 5% não vale sobre preço promocional. A query já devolve `promo_price_brl` e `pix_price_brl` (este só quando não há promoção), e o agente não deve recalcular.
+- O system prompt (`agent/prompt.py`) é estático de propósito: o modelo usa thinking adaptativo (não dá para desligar) e assina os blocos de thinking contra o system prompt; se ele mudar entre turnos, a API devolve 400 ao reaproveitar o histórico. Dados que variam, como data/hora e loja aberta/fechada, vêm de tool (`get_store_status`). Não interpolar nada no prompt. O modelo também não aceita `temperature` fora do padrão.
+- `POST /api/chat` (`main.py`) consulta `handoff:{conversation_id}` no Redis antes do grafo. Se o Redis falhar, responde 503 em vez de seguir com o agente, para não falar por cima de um humano.
 - `get_order_status` exige e-mail ou telefone do cliente e dá a mesma resposta para pedido inexistente e pedido de outra pessoa.
 - Caddy serve `frontend/` e encaminha `/api/*` para `app:8000`; por isso as rotas da API ficam sob `/api`.
 - O repositório é público (desafio técnico). Nunca commitar `.env`, que está no `.gitignore`.
