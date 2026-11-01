@@ -14,7 +14,9 @@ Agente de atendimento via chat para a Empório da Música (loja de instrumentos,
 
 - Idioma: código e identificadores em inglês; prompts, mensagens para o cliente e docs em português.
 - Stack LangGraph: `langchain-anthropic` para o modelo (não usar o SDK `anthropic` direto), `psycopg` 3 (não psycopg2), checkpointer `langgraph-checkpoint-postgres`.
-- Redis é usado para o estado de handoff (agente vs. humano), previsto como chave `handoff:{conversation_id}` com valor `agent` ou `human`. A API deve consultar antes de chamar o grafo.
+- Handoff (Redis): chave `handoff:{conversation_id}` = `human`, sempre com validade (`HANDOFF_TIMEOUT_SECONDS`, padrão 1800). Chave ausente = `agent`, então o timeout devolve a conversa ao agente sem job agendado; cada mensagem do atendente renova a validade. Não existe estado "encerrada": uma conversa é só um `conversation_id` guardado pelo cliente, e "nova conversa" = id novo.
+- O agente transfere com a tool `transfer_to_human` (pega o id de `config["configurable"]["thread_id"]`, grava a chave e publica evento no canal `handoff:events`). Em modo humano, `POST /api/chat` grava a mensagem do cliente no histórico (checkpoint) e avisa o atendente; mensagens do atendente entram como `AIMessage` com prefixo `[Atendente humano]` e `name="attendant"`, e o prompt explica isso (sem a explicação o modelo atribui a mensagem a si mesmo e "se corrige").
+- Endpoints do atendente (`handoff/api.py`, sob `/api/attendant`) exigem o header `X-Attendant-Token` = `ATTENDANT_TOKEN`; sem a variável, todos recusam (401). O cliente recebe respostas do atendente por polling em `GET /api/chat/{id}?after=N`.
 - Políticas são buscadas com full-text search do Postgres (config `portuguese` + `unaccent`), não com embeddings: o Claude não gera embeddings e o manual tem só 25 trechos. O pgvector está instalado para uso futuro.
 - `search_policies` casa pelas 5 primeiras letras de cada palavra (`word:*`), porque o stemmer do Postgres não une devolver/devolução nem rastrear/rastreamento.
 - Preços: promoções não são cumulativas e o desconto PIX de 5% não vale sobre preço promocional. A query já devolve `promo_price_brl` e `pix_price_brl` (este só quando não há promoção), e o agente não deve recalcular.
@@ -42,9 +44,5 @@ Vêm de `data/políticas_da_loja.pdf` (seção 7):
 
 ## Próximos passos
 
-1. `agent/prompt.py`: system prompt com as regras acima.
-2. `agent/runner.py`: grafo LangGraph (modelo + `TOOLS` de `agent/tools.py`) com checkpointer Postgres; `thread_id` = id da conversa.
-3. Endpoint de chat em `main.py` (sob `/api`), consultando o handoff no Redis.
-4. `handoff/`: troca agente e humano, com pub/sub do Redis para avisar o atendente.
-5. `frontend/`: chat simples (`index.html`) servido pelo Caddy.
-6. Variável `ANTHROPIC_API_KEY` no `.env`; passar para o serviço `app` já é feito via `env_file`.
+1. `frontend/`: chat simples (`index.html`) servido pelo Caddy, com polling de `GET /api/chat/{id}` enquanto `handled_by` for `human`. Uma tela de atendente (usando `/api/attendant/*`) é opcional.
+2. Antes de publicar: limite de requisições por IP em `/api/chat` (hoje qualquer um gasta a chave da Anthropic).

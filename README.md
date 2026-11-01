@@ -66,5 +66,5 @@ Definidas em `agent/tools.py` (lista `TOOLS`):
 - [x] `agent/prompt.py` (system prompt)
 - [x] `agent/runner.py` (grafo LangGraph + checkpointer Postgres)
 - [x] Endpoint de chat na API (`POST /api/chat`)
-- [ ] Handoff para atendente humano (Redis)
+- [x] Handoff para atendente humano (Redis, `handoff/`)
 - [ ] Frontend do chat
