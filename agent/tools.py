@@ -1,9 +1,12 @@
 import re
 
+from langchain_core.runnables import RunnableConfig
 from langchain_core.tools import tool
 
 from agent.store import store_status
 from db.connection import get_pool
+from handoff.events import publish
+from handoff.state import start_human
 
 # Price with the active promotion applied. Per the store policy, promotions are not cumulative
 # and the 5% PIX discount does not apply on top of promotional prices.
@@ -180,6 +183,27 @@ def get_store_status() -> dict:
     return store_status()
 
 
+@tool
+def transfer_to_human(reason: str, config: RunnableConfig) -> dict:
+    """Transfer the conversation to a human attendant and notify them.
+
+    Use it for complaints, when the customer asks for a person, or when you cannot solve the
+    request. After calling it, tell the customer they will be served by an attendant.
+
+    Args:
+        reason: short summary for the attendant (what happened, order number if any, what the
+            customer wants). The attendant reads this before answering.
+    """
+    conversation_id = config["configurable"]["thread_id"]
+    start_human(conversation_id)
+    publish({"type": "transfer", "conversation_id": conversation_id, "reason": reason})
+    return {
+        "result": "Conversa transferida. Um atendente foi avisado e responderá por aqui.",
+        # so the answer can say when the team is back if the store is closed
+        **store_status(),
+    }
+
+
 TOOLS = [
     search_products,
     get_product,
@@ -187,4 +211,5 @@ TOOLS = [
     get_order_status,
     search_policies,
     get_store_status,
+    transfer_to_human,
 ]

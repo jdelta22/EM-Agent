@@ -2,7 +2,7 @@ import os
 from functools import lru_cache
 
 from langchain_anthropic import ChatAnthropic
-from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from langgraph.checkpoint.postgres import PostgresSaver
 from langgraph.graph import END, START, MessagesState, StateGraph
 from langgraph.prebuilt import ToolNode, tools_condition
@@ -74,3 +74,41 @@ def reply(conversation_id: str, message: str) -> str:
     config = {"configurable": {"thread_id": conversation_id}, "recursion_limit": RECURSION_LIMIT}
     result = get_graph().invoke({"messages": [HumanMessage(message)]}, config)
     return _text(result["messages"][-1].content).strip() or FALLBACK_REPLY
+
+
+ATTENDANT_PREFIX = "[Atendente humano] "
+
+
+def _thread(conversation_id: str) -> dict:
+    return {"configurable": {"thread_id": conversation_id}}
+
+
+def record_message(conversation_id: str, text: str, role: str) -> None:
+    """Append a message to the history without running the model (used while a human answers).
+
+    role: "customer" or "attendant". Attendant messages are stored as assistant messages with a
+    prefix, so that if the agent takes over again it can tell them apart from its own.
+    """
+    if role == "customer":
+        message = HumanMessage(text)
+    else:
+        message = AIMessage(ATTENDANT_PREFIX + text, name="attendant")
+    get_graph().update_state(_thread(conversation_id), {"messages": [message]}, as_node="model")
+
+
+def get_history(conversation_id: str) -> list[dict]:
+    """The visible conversation as [{"role": "customer" | "agent" | "attendant", "text": ...}]."""
+    state = get_graph().get_state(_thread(conversation_id))
+    history = []
+    for m in state.values.get("messages", []):
+        text = _text(m.content).strip()
+        if not text or m.type not in ("human", "ai"):
+            continue  # tool results, and assistant turns that only called tools
+        if m.type == "human":
+            role = "customer"
+        elif m.name == "attendant":
+            role, text = "attendant", text.removeprefix(ATTENDANT_PREFIX)
+        else:
+            role = "agent"
+        history.append({"role": role, "text": text})
+    return history
