@@ -23,6 +23,7 @@ Agente de atendimento via chat para a Empório da Música (loja de instrumentos,
 - O system prompt (`agent/prompt.py`) é estático de propósito: o modelo usa thinking adaptativo (não dá para desligar) e assina os blocos de thinking contra o system prompt; se ele mudar entre turnos, a API devolve 400 ao reaproveitar o histórico. Dados que variam, como data/hora e loja aberta/fechada, vêm de tool (`get_store_status`). Não interpolar nada no prompt. O modelo também não aceita `temperature` fora do padrão.
 - `POST /api/chat` (`main.py`) consulta `handoff:{conversation_id}` no Redis antes do grafo. Se o Redis falhar, responde 503 em vez de seguir com o agente, para não falar por cima de um humano.
 - `get_order_status` exige e-mail ou telefone do cliente e dá a mesma resposta para pedido inexistente e pedido de outra pessoa.
+- Frontend (`frontend/`, sem build): `/` landing, `/chat` e `/atendente` (o Caddy tenta `{path}.html`). `common.js` renderiza o texto do agente só com nós DOM (nunca `innerHTML`), para o texto de mensagens não injetar HTML. O painel do atendente usa SSE via `fetch` (EventSource não manda header) e guarda o token em `sessionStorage`. A fila vem de `GET /api/attendant/conversations` (chaves `handoff:*` no Redis); o motivo da transferência fica em `handoff_reason:{id}`.
 - Caddy serve `frontend/` e encaminha `/api/*` para `app:8000`; por isso as rotas da API ficam sob `/api`.
 - O repositório é público (desafio técnico). Nunca commitar `.env`, que está no `.gitignore`.
 
@@ -44,5 +45,4 @@ Vêm de `data/políticas_da_loja.pdf` (seção 7):
 
 ## Próximos passos
 
-1. `frontend/`: chat simples (`index.html`) servido pelo Caddy, com polling de `GET /api/chat/{id}` enquanto `handled_by` for `human`. Uma tela de atendente (usando `/api/attendant/*`) é opcional.
-2. Antes de publicar: limite de requisições por IP em `/api/chat` (hoje qualquer um gasta a chave da Anthropic).
+1. Antes de publicar: limite de requisições por IP em `/api/chat` (hoje qualquer um gasta a chave da Anthropic).
