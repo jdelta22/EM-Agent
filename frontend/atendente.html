@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Atendimento — Empório da Música</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body class="app">
+  <div id="login" class="login">
+    <h1>Painel do atendente</h1>
+    <p>Informe o token de acesso para atender as conversas transferidas pelo assistente.</p>
+    <form id="login-form">
+      <input id="token" type="password" placeholder="Token de atendente" autocomplete="current-password" required>
+      <p id="login-error" class="error" role="alert"></p>
+      <button class="btn" type="submit">Entrar</button>
+    </form>
+  </div>
+
+  <div id="panel" hidden>
+    <header class="app-head">
+      <a class="brand" href="/atendente">Atendimento</a>
+      <span id="live" class="pill"><span class="status-dot" id="dot"></span><span id="live-text">Conectando…</span></span>
+      <button id="logout" class="btn ghost small" type="button">Sair</button>
+    </header>
+
+    <div class="desk">
+      <aside class="queue">
+        <h2>Em atendimento humano</h2>
+        <div id="queue"></div>
+      </aside>
+
+      <section class="convo">
+        <div id="convo-head" class="convo-head" hidden>
+          <div class="info-line"><strong id="convo-title"></strong><span id="convo-reason"></span></div>
+          <button id="release" class="btn ghost small" type="button">Devolver ao assistente</button>
+        </div>
+        <main id="scroller" class="chat-main">
+          <div id="thread" class="thread"></div>
+          <div id="placeholder" class="placeholder">Selecione uma conversa da fila.<br>Quando o assistente transferir um cliente, ele aparece aqui.</div>
+        </main>
+        <div id="composer" class="composer" hidden>
+          <form id="form">
+            <textarea id="input" rows="1" maxlength="2000" placeholder="Responder ao cliente" aria-label="Resposta"></textarea>
+            <button id="send" class="btn" type="submit">Enviar</button>
+          </form>
+          <p class="hint">Responder renova o tempo de atendimento. Se ninguém responder por um tempo, o assistente volta a atender.</p>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script src="/common.js"></script>
+  <script src="/atendente.js"></script>
+</body>
+</html>

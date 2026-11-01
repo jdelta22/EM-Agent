@@ -6,7 +6,7 @@
 
 	handle {
 		root * /srv/frontend
-		try_files {path} /index.html
+		try_files {path} {path}.html /index.html
 		file_server
 	}
 }

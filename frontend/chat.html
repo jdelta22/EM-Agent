@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chat — Empório da Música</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body class="app">
+  <header class="app-head">
+    <a class="brand" href="/">Empório <span>da</span> Música</a>
+    <span id="status" class="pill">Assistente virtual</span>
+    <button id="new-chat" class="btn ghost small" type="button">Nova conversa</button>
+  </header>
+
+  <main id="scroller" class="chat-main">
+    <div id="thread" class="thread" aria-live="polite"></div>
+  </main>
+
+  <div class="composer">
+    <form id="form">
+      <textarea id="input" rows="1" maxlength="2000" placeholder="Escreva sua mensagem" aria-label="Mensagem" autofocus></textarea>
+      <button id="send" class="btn" type="submit">Enviar</button>
+    </form>
+    <p class="hint">Você fala com um assistente virtual. Se precisar, ele chama um atendente da loja.</p>
+  </div>
+
+  <script src="/common.js"></script>
+  <script src="/chat.js"></script>
+</body>
+</html>
