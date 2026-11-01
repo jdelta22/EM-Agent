@@ -102,8 +102,8 @@ def get_history(conversation_id: str) -> list[dict]:
     history = []
     for m in state.values.get("messages", []):
         text = _text(m.content).strip()
-        if not text or m.type not in ("human", "ai"):
-            continue  # tool results, and assistant turns that only called tools
+        if not text or m.type not in ("human", "ai") or getattr(m, "tool_calls", None):
+            continue  # tool results, and assistant steps that call tools (only the final answer is shown)
         if m.type == "human":
             role = "customer"
         elif m.name == "attendant":

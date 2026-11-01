@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field
 
 from agent.runner import get_history, record_message
 from handoff.events import publish, subscribe
-from handoff.state import get_handler, release, start_human
+from handoff.state import get_handler, list_human, release, start_human
 
 ConversationId = Path(pattern=r"^[A-Za-z0-9_-]{1,64}$")
 
@@ -45,6 +45,12 @@ def events() -> StreamingResponse:
     return StreamingResponse(
         stream(), media_type="text/event-stream", headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"}
     )
+
+
+@router.get("/conversations")
+def conversations():
+    """Conversations currently with a human, most recently active first (the attendant's queue)."""
+    return list_human()
 
 
 @router.get("/conversations/{conversation_id}")

@@ -195,7 +195,7 @@ def transfer_to_human(reason: str, config: RunnableConfig) -> dict:
             customer wants). The attendant reads this before answering.
     """
     conversation_id = config["configurable"]["thread_id"]
-    start_human(conversation_id)
+    start_human(conversation_id, reason)
     publish({"type": "transfer", "conversation_id": conversation_id, "reason": reason})
     return {
         "result": "Conversa transferida. Um atendente foi avisado e responderá por aqui.",
