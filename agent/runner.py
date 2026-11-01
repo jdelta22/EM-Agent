@@ -12,7 +12,7 @@ from psycopg_pool import ConnectionPool
 from agent.prompt import SYSTEM_PROMPT
 from agent.tools import TOOLS
 
-MODEL = os.environ.get("ANTHROPIC_MODEL", "claude-sonnet-5-5")
+MODEL = os.environ.get("ANTHROPIC_MODEL", "claude-haiku-5-5")
 
 # Upper bound of graph steps per customer message (model + tool calls), so a misbehaving
 # tool loop cannot run forever.

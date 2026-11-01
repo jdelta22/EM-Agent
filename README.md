@@ -172,7 +172,7 @@ Para ver o fluxo completo, use duas janelas (ou uma janela normal e uma anônima
 | `ANTHROPIC_API_KEY` | Sim | — | Chave da API da Anthropic |
 | `ATTENDANT_TOKEN` | Sim, para o painel | — | Senha do painel. **Vazio = o painel recusa todos os acessos** |
 | `SITE_ADDRESS` | Não | `:80` | `:80` para uso local, ou um domínio (ex.: `agent.exemplo.com`) para o Caddy ativar HTTPS automático |
-| `ANTHROPIC_MODEL` | Não | `claude-sonnet-5-5` | Modelo usado pelo agente |
+| `ANTHROPIC_MODEL` | Não | `claude-haiku-5-5` | Modelo usado pelo agente |
 | `HANDOFF_TIMEOUT_SECONDS` | Não | `1800` | Segundos sem resposta do atendente até o assistente retomar a conversa |
 
 `REDIS_URL` e `DATABASE_URL` são definidas pelo `docker-compose.yml`; você não precisa mexer nelas.
