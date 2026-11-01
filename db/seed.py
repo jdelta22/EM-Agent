@@ -65,7 +65,8 @@ def parse_policies(pdf_path: Path) -> list[dict]:
         {
             "section": c["section"],
             "title": c["title"],
-            "content": re.sub(r"\s+", " ", " ".join(c["lines"])),
+            # the PDF spells the store e-mail with an accent in section 1.2; the real one has none
+            "content": re.sub(r"\s+", " ", " ".join(c["lines"])).replace("empóriodamusica", "emporiodamusica"),
         }
         for c in chunks
         if c["lines"]
