@@ -9,6 +9,8 @@ O agente responde dúvidas sobre produtos, estoque, promoções, pedidos e polí
 - [Stack](#stack)
 - [Como rodar](#como-rodar)
 - [Como usar](#como-usar): [site e chat](#1-site-e-chat-do-cliente) · [painel do atendente](#2-painel-do-atendente) · [testar a transferência](#3-testando-a-transferência-para-um-humano)
+- [Decisões técnicas](#decisões-técnicas)
+- [Exemplos](#exemplos)
 - [Configuração](#configuração-env)
 - [Como funciona](#como-funciona)
 - [API](#api)
@@ -164,6 +166,81 @@ Para ver o fluxo completo, use duas janelas (ou uma janela normal e uma anônima
 5. **Janela B:** responda ao atendente. A mensagem aparece na janela A em tempo real.
 6. **Janela A:** clique em **Devolver ao assistente**. A janela B mostra "O atendimento voltou para o assistente virtual" e o assistente volta a responder, já sabendo o que foi combinado.
 
+## Decisões técnicas
+
+<details>
+<summary>Frameworks e Estrutura do projeto</summary>
+ 
+- FastAPI: framework python para a constução da api para o agente se comunicar, decidi usar porque já tenho familiaridade e a facilidade da ferramenta para montar os endpoints necessário para o agente
+
+- LangGraph + langchain-anthropic: frameworks para criação do agente, resolvi utilizar os modelos da anthropic por que já tenho cadastro na plataforma e consigo usar a API desse modelo facilmente, resolvi utilizar o haiku para reduzir o custo, mas caso esse projeto fosse para produção eu trocaria o modelo
+
+- Estrutura do projeto: Já criei outros chatbots, mas geralmente usando n8n, mas basicamente procurei aplicar a mesma estrutura que utilizo nos projetos de n8n, para isso separei um pacote para o agente, um pacote para o banco de dados, um pacote para os handoff que controla se a conversa está com o atendente ou com o assistente utilizando redis.
+</details>
+
+<details>
+<summary>Modelo de IA</summary>
+
+- Como já possuia creditos na anthropic utilizei o sonet 5.5, mas devido ao elevado gasto de tokens, troquei pelo haiku.
+</details>
+
+<details>
+<summary>Persistencia e Historico da Conversa</summary>
+
+- Utilizei Postgres na versão pgvector, propria para modelos de agente e que já inclue o langgraph-checkpoint-postgres que integra com o langgraph e garante persistencia de conversas para o agente.
+
+- Também passei os dados fornecidos nos arquivos .csv para o postgres, para evitar ficar abrindo eles toda vez que o agente precisasse realizar uma consulta.
+</details>
+
+<details>
+<summary>Lógica do Agente</summary>
+
+- O cliente faz uma pergunta, o sistema gera uma id para a conversa, o agente busca as informações utilizando as tools, responde e caso seja necessário, manda a conversa para um atendente.
+- Tanto o id da conversa quanto o atendente(IA ou humano) ficam registrados no Redis, e podem intercalar entre sí.
+- O atendimento para finalizar compras é sempre com o atendente humano.
+
+</details>
+
+<details>
+<summary>Frontend</summary>
+
+- Para exemplificar tudo, decidi fazer um frontend básico, contendo uma landing page, uma pagina para o chat e uma pagina como painel para o atendente.
+</details>
+
+
+<details>
+<summary>Limitações e Proximos passos</summary>
+
+- Identifiquei apenas algumas incosistencias nos dados passados, como email aparecendo com acento uma vez e sem acento em outra, dois numeros de whatsapp, que decidi manter ambos, pois não é incomum uma empresa ter mais de um numero
+
+- o modelo que usei foi da antrophic e acabou sendo bem dispendioso, acredito que existam modelos mais baratos para utilizar para chatbots.
+
+- o Frontend é basico, apenas html, css e um pouco de javascript, como é uma loja acho que ficaria mais interessante fazer uma loja virtual completa, com catalogo, imagens, calculo de frete automatico e outras coisas.
+
+- As adminstração das conversas é totalmente via redis, que depende do navegador guardar o id para funcionar, isso tem dois problemas: 1: o chat não fica salvo para o usuario; 2: um mesmo usuario poderia fazer multiplas conversas ao mesmo tempo, então seria necessário algo como um controle por ip.
+
+</details>
+
+<details>
+<summary>Uso de assistente de Código</summary>
+
+- Utilizo Claude Code como assistente principal, procuro estruturar o projeto, definir como eu quero que ele se comporte, definir a stack e só ai eu vou atrás de programar, usando o Claude para fazer o trabalho pesado e conferindo as respostas, testando o codigo gerado e guiando por onde eu quero que a IA siga.
+
+- Para esse projeto eu difini cada parte e fui fazendo aos poucos, comecei pelo docker compose, fui migrar os dados para o postgres, gerei um prompt, organizei as tools, e defini como o runner vai trabalhar, então fui para a api e o handoff, e finalizei com o frontend. 
+</details>
+
+
+
+## Exemplos
+
+Capturas de tela do chat e do painel funcionando, na pasta [`Exemplos/`](Exemplos/):
+
+- [Compra de bateria + violão, parte 1](Exemplos/Ex%20-%20Compra%20de%20bateria%20%2B%20viol%C3%A3o%201.png) e [parte 2](Exemplos/Ex%20-%20Compra%20de%20bateria%20%2B%20viol%C3%A3o%202.png)
+- [Compra de bateria + violão, vista do painel de atendimento](Exemplos/Ex%20-%20Compra%20de%20bateria%20%2B%20viol%C3%A3o%20-%20painel%20de%20atendimento.png)
+- [Produtos em promoção](Exemplos/Ex%20-%20Produtos%20em%20promo%C3%A7%C3%A3o.png)
+- [Endereço e contatos da loja](Exemplos/Ex%20-%20endere%C3%A7o%20e%20contatos%20da%20loja.png)
+- [Pedido de devolução](Exemplos/Ex%20-%20pedido%20de%20devolu%C3%A7%C3%A3o.png)
+
 ## Configuração (`.env`)
 
 | Variável | Obrigatória | Padrão | Descrição |
@@ -250,6 +327,7 @@ db/         schema.sql, seed.py, connection.py, init/ (scripts de inicializaçã
 handoff/    state.py (quem responde, com timeout), events.py (avisos em tempo real), api.py (rotas do atendente)
 frontend/   index.html (landing), chat.html, atendente.html, style.css, common.js, chat.js, atendente.js
 scripts/    testes manuais (try_agent.py, try_handoff.py, try_ui.py)
+Exemplos/   capturas de tela do chat e do painel funcionando
 data/       CSVs da loja e manual de políticas (PDF)
 main.py     app FastAPI
 ```
